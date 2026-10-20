@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--data', type=Path, default=ROOT / 'data' / 'bridge_sample')
+    parser.add_argument('--data', type=Path, default=ROOT / 'data')
     parser.add_argument('--limit', type=int, default=None)
     args = parser.parse_args()
     if args.limit is not None and args.limit < 1:

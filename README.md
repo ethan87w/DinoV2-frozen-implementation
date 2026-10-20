@@ -8,9 +8,11 @@ Turns robot images into embeddings and finds similar images from other episodes.
 2. Put your shared dataset here:
 
 ```text
-data/bridge_sample/metadata.csv
-data/bridge_sample/images/
+data/metadata.csv
+data/images/
 ```
+
+Place all JPEG images inside `data/images/` and your `metadata.csv` directly inside `data/`. Keep CSV headers unchanged; its `image_path` values should look like `images/filename.jpg`. The folders contain placeholders only; add your own shared dataset locally.
 
 3. Run these commands in the VS Code PowerShell terminal:
 

@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--query', type=int, default=0)
     parser.add_argument('--top-k', type=int, default=3)
-    parser.add_argument('--data', type=Path, default=ROOT / 'data' / 'bridge_sample')
+    parser.add_argument('--data', type=Path, default=ROOT / 'data')
     parser.add_argument('--embeddings', type=Path, default=ROOT / 'outputs' / 'embeddings_all.pt')
     parser.add_argument('--no-show', action='store_true')
     parser.add_argument('--print-embedding', action='store_true')
