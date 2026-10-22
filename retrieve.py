@@ -8,6 +8,11 @@ import torch.nn.functional as F
 ROOT = Path(__file__).resolve().parent
 
 
+def scene_name(row):
+    scene = str(row.get('scene') or '').strip()
+    return scene if scene.lower() not in {'', 'none', 'nan'} else 'unknown'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--query', type=int, default=0)
@@ -17,6 +22,9 @@ def main():
     parser.add_argument('--no-show', action='store_true')
     parser.add_argument('--print-embedding', action='store_true')
     args = parser.parse_args()
+    # Support both the repository layout and the original shared-export folder.
+    if not (args.data / 'images').is_dir() and (args.data / 'bridge_sample' / 'images').is_dir():
+        args.data = args.data / 'bridge_sample'
     saved = torch.load(args.embeddings, map_location='cpu', weights_only=True)
     embeddings, metadata = saved['embeddings'], saved['metadata']
     if embeddings.shape != (len(metadata), 384) or not torch.isfinite(embeddings).all().item():
@@ -36,12 +44,13 @@ def main():
         raise ValueError('No images from other episodes; encode a larger sample')
     ranked = sorted(candidates, key=lambda i: scores[i].item(), reverse=True)[:args.top_k]
     print('Query:', query['image_id'], '| episode:', query['episode_id'])
+    print('Query scene:', scene_name(query))
     print('Eligible images:', len(candidates))
     if args.print_embedding:
         print('Query embedding:', embeddings[args.query].tolist())
     for rank, i in enumerate(ranked, 1):
         assert metadata[i]['episode_id'] != query['episode_id']
-        print(f"{rank}. {metadata[i]['image_id']} | episode: {metadata[i]['episode_id']} | cosine: {scores[i].item():.4f}")
+        print(f"{rank}. {metadata[i]['image_id']} | episode: {metadata[i]['episode_id']} | scene: {scene_name(metadata[i])} | cosine: {scores[i].item():.4f}")
     import matplotlib
     if args.no_show:
         matplotlib.use('Agg')
@@ -54,10 +63,7 @@ def main():
         with Image.open(args.data / row['image_path']) as image:
             axes[0, position].imshow(image.convert('RGB'))
         title = 'QUERY' if position == 0 else f'Match {position} | cosine: {scores[i].item():.3f}'
-        a, b = str(query.get('scene') or 'unknown').strip(), str(row.get('scene') or 'unknown').strip()
-        unknown = {'', 'unknown', 'none', 'nan'}
-        relation = 'unknown' if a.lower() in unknown or b.lower() in unknown else ('same' if a == b else 'different')
-        label = 'Reference image' if position == 0 else f'Scene relationship: {relation}'
+        label = f'Scene: {scene_name(row)}'
         axes[0, position].set_title(f"{title}\nEpisode: {row['episode_id']}\nFrame: {row['frame_index']}\n{label}", fontsize=9)
         axes[0, position].axis('off')
     fig.suptitle('Frozen DINOv2 retrieval - query episode excluded')

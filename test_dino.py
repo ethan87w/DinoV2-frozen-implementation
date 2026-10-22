@@ -15,6 +15,8 @@ def main():
     parser.add_argument('--data', type=Path, default=ROOT / 'data')
     parser.add_argument('--limit', type=int, default=None)
     args = parser.parse_args()
+    if not (args.data / 'metadata.csv').is_file() and (args.data / 'bridge_sample' / 'metadata.csv').is_file():
+        args.data = args.data / 'bridge_sample'
     if args.limit is not None and args.limit < 1:
         parser.error('--limit must be positive')
     with (args.data / 'metadata.csv').open(encoding='utf-8-sig', newline='') as file:
